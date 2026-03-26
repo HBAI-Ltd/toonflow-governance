@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Toonflow理事会（首次会议） - 聊天记录</title>
+    <style>:root {
+  color-scheme: light;
+  --bg: #f6f7fb;
+  --card: #ffffff;
+  --text: #1f2a37;
+  --muted: #6b7280;
+  --accent: #4f46e5;
+  --sent: #dbeafe;
+  --received: #ffffff;
+  --border: #e5e7eb;
+  --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  --radius: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 8px 20px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  background: var(--card);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+  padding: 12px 20px;
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  display: inline;
+}
+
+.meta {
+  color: var(--muted);
+  font-size: 13px;
+  display: inline;
+  margin-left: 12px;
+}
+
+.meta span {
+  margin-right: 10px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.controls input,
+.controls button {
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.controls input[type="search"] {
+  width: 200px;
+}
+
+.controls input[type="datetime-local"] {
+  width: 200px;
+}
+
+.controls button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  padding: 6px 14px;
+}
+
+.controls button:active {
+  transform: scale(0.98);
+}
+
+.stats {
+  font-size: 13px;
+  color: var(--muted);
+  margin-left: auto;
+}
+
+.message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.message.hidden {
+  display: none;
+}
+
+.message-time {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.message-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.message.sent .message-row {
+  flex-direction: row-reverse;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #eef2ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  color: #475569;
+  font-weight: 600;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bubble {
+  max-width: min(70%, 720px);
+  background: var(--received);
+  border-radius: 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+.message.sent .bubble {
+  background: var(--sent);
+  border-color: transparent;
+}
+
+.sender-name {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.message-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.message-text {
+  word-break: break-word;
+}
+
+.quoted-message {
+  border-left: 3px solid rgba(79, 70, 229, 0.35);
+  background: rgba(79, 70, 229, 0.06);
+  border-radius: 12px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.message.sent .quoted-message {
+  background: rgba(37, 99, 235, 0.08);
+  border-left-color: rgba(37, 99, 235, 0.35);
+}
+
+.quoted-sender {
+  font-size: 12px;
+  color: #374151;
+  font-weight: 600;
+}
+
+.quoted-text {
+  font-size: 13px;
+  color: #4b5563;
+  word-break: break-word;
+}
+
+.message-link-card {
+  color: #2563eb;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  word-break: break-all;
+}
+
+.message-link-card:hover {
+  color: #1d4ed8;
+}
+
+.inline-emoji {
+  width: 22px;
+  height: 22px;
+  vertical-align: text-bottom;
+  margin: 0 2px;
+}
+
+.message-media {
+  border-radius: 14px;
+  max-width: 100%;
+}
+
+.previewable {
+  cursor: zoom-in;
+}
+
+.message-media.image,
+.message-media.emoji {
+  max-height: 260px;
+  object-fit: contain;
+  background: #f1f5f9;
+  padding: 6px;
+}
+
+.message-media.emoji {
+  max-height: 160px;
+  width: auto;
+}
+
+.message-media.video {
+  max-height: 360px;
+  background: #111827;
+}
+
+.message-media.audio {
+  width: 260px;
+}
+
+.image-preview {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 999;
+}
+
+.image-preview.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.image-preview img {
+  max-width: min(90vw, 1200px);
+  max-height: 90vh;
+  border-radius: 18px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+  background: #0f172a;
+  transition: transform 0.1s ease;
+  cursor: zoom-out;
+}
+
+.highlight {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 18px;
+  transition: outline-color 0.3s;
+}
+
+.empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 40px;
+}
+
+/* Scroll Container */
+.scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  margin-top: 8px;
+  margin-bottom: 8px;
+  padding: 12px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.load-sentinel {
+  height: 1px;
+}
+</style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="header">
+        <h1 class="title">Toonflow理事会（首次会议）</h1>
+        <div class="meta">
+          <span>141 条消息</span>
+          <span>群聊</span>
+          <span>2026-03-25 00:24:59</span>
+        </div>
+        <div class="controls">
+          <input id="searchInput" type="search" placeholder="搜索消息..." />
+          <input id="timeInput" type="datetime-local" />
+          <button id="jumpBtn" type="button">跳转</button>
+          <div class="stats">
+            <span id="resultCount">共 141 条</span>
+          </div>
+        </div>
+      </div>
+      
+      <div id="scrollContainer" class="scroll-container"></div>
+      
+    </div>
+    
+    <div class="image-preview" id="imagePreview">
+      <img id="imagePreviewTarget" alt="预览" />
+    </div>
+
+    <!-- Data Injection -->
+    <script>
+      window.WEFLOW_DATA = [
+{"i":1,"t":1774323641,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 11:40:41</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">ACT, ㅤㅤㅤㅤ, 灰大王 加入群聊</div></div>"},
+{"i":2,"t":1774325544,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 12:12:24</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">@所有人 备注改为理事会成员。</div></div>","p":"3600765698347929006"},
+{"i":3,"t":1774325580,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 12:13:00</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"message-text\"><br /><img class=\"inline-emoji\" src=\"data:image/png;base64,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\" alt=\"[OK]\" /></div></div>","p":"4420405542425422176"},
+{"i":4,"t":1774325829,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 12:17:09</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">我有个问题，是不是应该换个聊天工具会更好，微信不记录历史记录</div></div>","p":"7099104133043471188"},
+{"i":5,"t":1774325831,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 12:17:11</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">新加入进来的</div></div>","p":"4789236897322535518"},
+{"i":6,"t":1774325841,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 12:17:21</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"message-text\"><br />这个啥群啊</div></div>","p":"7605135878408271159"},
+{"i":7,"t":1774325842,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 12:17:22</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><img class=\"message-media emoji previewable\" src=\"../emojis/3a2edc3bb84e64ba628d5c76dbfc25b6.png\" data-full=\"../emojis/3a2edc3bb84e64ba628d5c76dbfc25b6.png\" alt=\"动画表情\" /><div class=\"message-text\">[表情包]</div></div>","p":"4451231859340309813"},
+{"i":8,"t":1774325964,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 12:19:24</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">toonflow都开源了就真开源，到时候会提出议题然后进行决议</div></div>","p":"9063068606099338470"},
+{"i":9,"t":1774325970,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 12:19:30</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">这就是理事会的作用</div></div>","p":"8813460810192408622"},
+{"i":10,"t":1774325982,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 12:19:42</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">hbai保留4个理事会席位，社区贡献者占11个席位</div></div>","p":"8608884094372510309"},
+{"i":11,"t":1774326010,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 12:20:10</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">hbai保留一票否决权</div></div>","p":"3805252586589673812"},
+{"i":12,"t":1774326034,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 12:20:34</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"quoted-message\"><div class=\"quoted-sender\">jason</div><div class=\"quoted-text\">hbai保留4个理事会席位，社区贡献者占11个席位</div></div><div class=\"message-text\">筛选标准</div></div>","p":"1376956925477813532","r":"8608884094372510309"},
+{"i":13,"t":1774326171,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 12:22:51</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><img class=\"message-media image previewable\" src=\"../images/13_dabda207ef683845a18a33191e938cd2.jpg\" data-full=\"../images/13_dabda207ef683845a18a33191e938cd2.jpg\" alt=\"图片消息\" /></div>","p":"56750224042136284"},
+{"i":14,"t":1774326236,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 12:23:56</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><img class=\"message-media emoji previewable\" src=\"../emojis/3a2edc3bb84e64ba628d5c76dbfc25b6.png\" data-full=\"../emojis/3a2edc3bb84e64ba628d5c76dbfc25b6.png\" alt=\"动画表情\" /><div class=\"message-text\">[表情包]</div></div>","p":"3523748584962603502"},
+{"i":15,"t":1774326260,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 12:24:20</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"quoted-message\"><div class=\"quoted-sender\">jason</div><div class=\"quoted-text\">[图片]</div></div><div class=\"message-text\">提一个一issue改两个bug就达标了</div></div>","p":"8286220647167463496","r":"56750224042136284"},
+{"i":16,"t":1774326294,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 12:24:54</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">人数很多的时候</div></div>","p":"6876792249182655219"},
+{"i":17,"t":1774326301,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 12:25:01</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">是按照积分比例来的</div></div>","p":"7864221984617184871"},
+{"i":18,"t":1774326303,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 12:25:03</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><img class=\"message-media emoji previewable\" src=\"../emojis/c6261f706763cf8ed410fa970b679e7b.gif\" data-full=\"../emojis/c6261f706763cf8ed410fa970b679e7b.gif\" alt=\"动画表情\" /><div class=\"message-text\">[表情包]</div></div>","p":"546406604758524371"},
+{"i":19,"t":1774326398,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 12:26:38</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">具体细节可以调</div></div>","p":"6386248279119156053"},
+{"i":20,"t":1774326772,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 12:32:52</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><img class=\"message-media emoji previewable\" src=\"../emojis/9309ebeb947ec8e08ac2d6bef584e512.png\" data-full=\"../emojis/9309ebeb947ec8e08ac2d6bef584e512.png\" alt=\"动画表情\" /><div class=\"message-text\">[表情包]</div></div>","p":"3586134509729988315"},
+{"i":21,"t":1774327217,"s":0,"a":"<img src=\"avatars/45012757000_chatroom.jpg\" alt=\"Toonflow理事会（首次会议）\" />","b":"<div class=\"message-time\">2026-03-24 12:40:17</div><div class=\"sender-name\">Toonflow理事会（首次会议）</div><div class=\"message-content\"><div class=\"message-text\">你修改群名为“Toonflow理事会（首次会议）”</div></div>","p":"2831246377474537063"},
+{"i":22,"t":1774327234,"s":0,"a":"<img src=\"avatars/45012757000_chatroom.jpg\" alt=\"Toonflow理事会（首次会议）\" />","b":"<div class=\"message-time\">2026-03-24 12:40:34</div><div class=\"sender-name\">Toonflow理事会（首次会议）</div><div class=\"message-content\"><div class=\"message-text\">你邀请&quot;骑小鳄鱼的loopy&quot;加入了群聊 你邀请&quot;骑小鳄鱼的loopy&quot;加入了群聊 invite 撤销 wxid_m62bozkwmyeg22</div></div>","p":"7063276967388964988"},
+{"i":23,"t":1774327254,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 12:40:54</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">@骑小鳄鱼的loopy 备注请改为社区见证人-xxx</div></div>","p":"2798364272626324101"},
+{"i":24,"t":1774327274,"s":0,"a":"<img src=\"avatars/wxid_m62bozkwmyeg22.jpg\" alt=\"骑小鳄鱼的loopy\" />","b":"<div class=\"message-time\">2026-03-24 12:41:14</div><div class=\"sender-name\">骑小鳄鱼的loopy</div><div class=\"message-content\"><div class=\"message-text\"><br />好</div></div>","p":"5260080764174235640"},
+{"i":25,"t":1774327396,"s":0,"a":"<img src=\"avatars/45012757000_chatroom.jpg\" alt=\"Toonflow理事会（首次会议）\" />","b":"<div class=\"message-time\">2026-03-24 12:43:16</div><div class=\"sender-name\">Toonflow理事会（首次会议）</div><div class=\"message-content\"><div class=\"message-text\">你邀请&quot;Alex&quot;加入了群聊 你邀请&quot;Alex&quot;加入了群聊 invite 撤销 wxid_oxpx6ucuclp621</div></div>","p":"8800407662781384762"},
+{"i":26,"t":1774327423,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 12:43:43</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">@Alex  备注请改为社区见证人-xxx</div></div>","p":"8287421985504856276"},
+{"i":27,"t":1774327782,"s":0,"a":"<img src=\"avatars/45012757000_chatroom.jpg\" alt=\"Toonflow理事会（首次会议）\" />","b":"<div class=\"message-time\">2026-03-24 12:49:42</div><div class=\"sender-name\">Toonflow理事会（首次会议）</div><div class=\"message-content\"><div class=\"message-text\">你邀请&quot;晓&quot;加入了群聊 你邀请&quot;晓&quot;加入了群聊 invite 撤销 wxid_qxfmvn7q65dr21</div></div>","p":"551566454465577310"},
+{"i":28,"t":1774327791,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 12:49:51</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">@晓 备注请改为社区见证人-xxx</div></div>","p":"1050863046285714760"},
+{"i":29,"t":1774327870,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 12:51:10</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">社区见证人总共邀请5人，其中两位为视频从业者，三位为github社区开发者。</div></div>","p":"4918367137544521993"},
+{"i":30,"t":1774328459,"s":0,"a":"<img src=\"avatars/45012757000_chatroom.jpg\" alt=\"Toonflow理事会（首次会议）\" />","b":"<div class=\"message-time\">2026-03-24 13:00:59</div><div class=\"sender-name\">Toonflow理事会（首次会议）</div><div class=\"message-content\"><div class=\"message-text\">你邀请&quot;Tech space&quot;加入了群聊 你邀请&quot;Tech space&quot;加入了群聊 invite 撤销 wxid_2efcgvmnlafn22</div></div>","p":"6299360827783822647"},
+{"i":31,"t":1774328459,"s":0,"a":"<img src=\"avatars/45012757000_chatroom.jpg\" alt=\"Toonflow理事会（首次会议）\" />","b":"<div class=\"message-time\">2026-03-24 13:00:59</div><div class=\"sender-name\">Toonflow理事会（首次会议）</div><div class=\"message-content\"><div class=\"message-text\">&quot;Tech space&quot;与群里其他人都不是朋友关系，请注意隐私安全</div></div>","p":"831356252627202198"},
+{"i":32,"t":1774328468,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 13:01:08</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">@Tech space 备注请改为社区见证人-xxx</div></div>","p":"5602157665699480412"},
+{"i":33,"t":1774328979,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 13:09:39</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">[群公告]Toonflow 社区理事会 · 第一次会议预告<br /><br />各位好，我们计划近期召开 Toonflow 社区理事会第一次会议，以下是本次议程预告：<br />三项决议将进行讨论与审阅：<br />① 开源协议变更<br />从 AGPL-3.0 变更为 Apache 2.0 + 补充协议<br />规则更透明，内容创作永久免费，商业 SaaS 使用按规模授权<br />② 授权定价体系<br />五档梯度定价，年销售额 10 万以下免费登记，10 万起按规模收取授权费<br />在你还没赚到钱之前，我们不收你的钱<br />③ 授权收入 50% 回归社区基金（前期由HBAI进行管理，理事会满15席后由理事会决议讨论第三方进行监管）<br />HBAI 承诺全部授权收入的 50% 直接用于社区建设与贡献者分红<br />季度公示，从第一笔起执行<br /><br />社区治理架构同步公布：<br />理事会构成（15席）<br />社区贡献者席 11 席 — 由贡献积分选举产生，任期 1 年<br />HBAI 任命席 4 席 — 保留最终否决权<br />治理权与经济权分离<br />理事会席位不附带分红资格<br />分红面向所有贡献者，年度积分 ≥ 50 分即可参与，按积分比例分配<br />贡献积分体系<br />PR 合并 / Issue 贡献 / Skill 发布 / 文档教程 / 社区活跃均可积累积分<br />积分决定分红比例，也决定理事会参选资格<br />社区见证人制度<br />我们将从开发者社区招募 3-5 名社区见证人<br />旁听理事会全程、可提交书面意见，代表社区声音在场<br /><br />完整决议文件、社区宣言、治理章程将在会议前发出。<br />欢迎提前提问，我们会在会议中统一讨论。<br />📅 会议时间2026年3月24日下午四点，为微信内文字进行沟通。</div></div>","p":"4638175719585718418"},
+{"i":34,"t":1774330207,"s":0,"a":"<img src=\"avatars/45012757000_chatroom.jpg\" alt=\"Toonflow理事会（首次会议）\" />","b":"<div class=\"message-time\">2026-03-24 13:30:07</div><div class=\"sender-name\">Toonflow理事会（首次会议）</div><div class=\"message-content\"><div class=\"message-text\">你邀请&quot;全屋家电、智能电器-刘生&quot;加入了群聊 你邀请&quot;全屋家电、智能电器-刘生&quot;加入了群聊 invite 撤销 wxid_9jr6xe30ke9429</div></div>","p":"3269762382288520540"},
+{"i":35,"t":1774330207,"s":0,"a":"<img src=\"avatars/45012757000_chatroom.jpg\" alt=\"Toonflow理事会（首次会议）\" />","b":"<div class=\"message-time\">2026-03-24 13:30:07</div><div class=\"sender-name\">Toonflow理事会（首次会议）</div><div class=\"message-content\"><div class=\"message-text\">&quot;全屋家电、智能电器-刘生&quot;与群里其他人都不是朋友关系，请注意隐私安全</div></div>","p":"6175253067013930444"},
+{"i":36,"t":1774330221,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 13:30:21</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">@全屋家电、智能电器-刘生 备注请改为社区见证人-xxx</div></div>","p":"4038951250120258374"},
+{"i":37,"t":1774339335,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 16:02:15</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">@所有人 成立理事会的主要目的是为了共创toonflow社区，以更开放的姿态进行toonflow产品的构建。目前主要理事会成员由HBAI-LTD开发团队承担，总共4人，议题中包含理事会成员构成“HBAI 任命席 4 席”。</div></div>","p":"7235660199669375916"},
+{"i":38,"t":1774339408,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 16:03:28</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">本次议题为第一次理事会会议，暂时由HBAI 任命席 4 席进行决议。108版本修改协议并开放之后，将开放理事会席位</div></div>","p":"5036130287548876035"},
+{"i":39,"t":1774339654,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 16:07:34</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">@理事会成员 ACT  @理事会成员 芝士  @理事会成员 小帅 <br />首先第一个提议。<br />原107版本开源协议为AGPL3.0.传染性过高，商业用户使用有阻力，不利于生态建设，提议将AGPL3.0协议修改为Apache 2.0+补充协议。<br />① 开源协议变更<br />从 AGPL-3.0 变更为 Apache 2.0 + 补充协议<br />规则更透明，内容创作永久免费，商业 SaaS 使用按规模授权<br />补充协议内容为<br />1.将Toonflow用于向两个及以上独立第三方提供商业服务时，需要商业授权。<br />无需授权：<br /> 用 Toonflow 制作内容，在平台发布并获得分账<br />二次开发，自己团队内部使用<br />≤ 5 个法人联合运营，不对外提供服务<br />个人学习、研究、非商业用途</div></div>","p":"7074526228011838028"},
+{"i":40,"t":1774339753,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 16:09:13</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">补充说明，提供商业服务指用 Toonflow 做产品卖给别人用（SaaS / 向外分发工具），除此之外全部免费。</div></div>","p":"5202655712848199058"},
+{"i":41,"t":1774339810,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 16:10:10</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"message-text\"><br />OK，没得问题</div></div>","p":"394826349040653447"},
+{"i":42,"t":1774339865,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 16:11:05</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"message-text\"><br />教育那个呢@理事会成员 Jason </div></div>","p":"3993640859203454574"},
+{"i":43,"t":1774339865,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 16:11:05</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">@所有人 社区见证人也可以提出问题</div></div>","p":"5740819499322219742"},
+{"i":44,"t":1774339892,"s":0,"a":"<img src=\"avatars/wxid_m62bozkwmyeg22.jpg\" alt=\"骑小鳄鱼的loopy\" />","b":"<div class=\"message-time\">2026-03-24 16:11:32</div><div class=\"sender-name\">骑小鳄鱼的loopy</div><div class=\"message-content\"><div class=\"message-text\"><br />我这边无异议</div></div>","p":"3170898133830267676"},
+{"i":45,"t":1774339894,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 16:11:34</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">@理事会成员 ACT ALEX作为社区贡献者，在教育领域内使用可以直接由理事会进行授权。</div></div>","p":"3587658600511864596"},
+{"i":46,"t":1774339923,"s":0,"a":"<img src=\"avatars/wxid_9jr6xe30ke9429.jpg\" alt=\"全屋家电、智能电器-刘生\" />","b":"<div class=\"message-time\">2026-03-24 16:12:03</div><div class=\"sender-name\">全屋家电、智能电器-刘生</div><div class=\"message-content\"><div class=\"message-text\"><br />赞成<img class=\"inline-emoji\" src=\"data:image/png;base64,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\" alt=\"[强]\" /></div></div>","p":"7420019053701787296"},
+{"i":47,"t":1774339947,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 16:12:27</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">其他教育领域需由理事会成员决议免除授权或者进行商业授权流程。</div></div>","p":"4133071383051903815"},
+{"i":48,"t":1774339951,"s":0,"a":"<img src=\"avatars/wxid_2efcgvmnlafn22.jpg\" alt=\"Tech space\" />","b":"<div class=\"message-time\">2026-03-24 16:12:31</div><div class=\"sender-name\">Tech space</div><div class=\"message-content\"><div class=\"message-text\"><br />无异议</div></div>","p":"2307753278200125840"},
+{"i":49,"t":1774339964,"s":0,"a":"<img src=\"avatars/wxid_eryyyr0bvajr22.jpg\" alt=\"ㅤㅤㅤㅤ芝士\" />","b":"<div class=\"message-time\">2026-03-24 16:12:44</div><div class=\"sender-name\">ㅤㅤㅤㅤ芝士</div><div class=\"message-content\"><div class=\"message-text\"><br />没问题</div></div>","p":"308887249127242133"},
+{"i":50,"t":1774339986,"s":0,"a":"<img src=\"avatars/wxid_rwrfim93fdws22.jpg\" alt=\"灰大王\" />","b":"<div class=\"message-time\">2026-03-24 16:13:06</div><div class=\"sender-name\">灰大王</div><div class=\"message-content\"><div class=\"message-text\"><br />欧克，可以的</div></div>","p":"8894279987923407284"},
+{"i":51,"t":1774339994,"s":0,"a":"<img src=\"avatars/wxid_oxpx6ucuclp621.jpg\" alt=\"Alex\" />","b":"<div class=\"message-time\">2026-03-24 16:13:14</div><div class=\"sender-name\">Alex</div><div class=\"message-content\"><div class=\"message-text\"><br />无异议</div></div>","p":"5167257438291480062"},
+{"i":52,"t":1774340020,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 16:13:40</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">本次议程中会记录聊天信息。</div></div>","p":"8564488743883831129"},
+{"i":53,"t":1774340240,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 16:17:20</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">@所有人 接下来进行第二项提议<br />商业版授权定价体系。<br />扶持期  10万&lt;年销售额 登记授权 免费<br />初创期 10万-50万年销售额 商业授权 5000元/年<br />成长期 50万-150万年销售额 商业授权 20000元/年<br />初创期 150万-500万年销售额 商业授权 80000元/年<br />初创期 500万以上年销售额 商业授权 面议</div></div>","p":"1241281456063634692"},
+{"i":54,"t":1774340324,"s":0,"a":"<img src=\"avatars/wxid_oxpx6ucuclp621.jpg\" alt=\"Alex\" />","b":"<div class=\"message-time\">2026-03-24 16:18:44</div><div class=\"sender-name\">Alex</div><div class=\"message-content\"><div class=\"message-text\"><br />无异议</div></div>","p":"3023152938267989133"},
+{"i":55,"t":1774340346,"s":0,"a":"<img src=\"avatars/wxid_eryyyr0bvajr22.jpg\" alt=\"ㅤㅤㅤㅤ芝士\" />","b":"<div class=\"message-time\">2026-03-24 16:19:06</div><div class=\"sender-name\">ㅤㅤㅤㅤ芝士</div><div class=\"message-content\"><div class=\"message-text\"><br />赞同</div></div>","p":"8312039720630245832"},
+{"i":56,"t":1774340363,"s":0,"a":"<img src=\"avatars/wxid_m62bozkwmyeg22.jpg\" alt=\"骑小鳄鱼的loopy\" />","b":"<div class=\"message-time\">2026-03-24 16:19:23</div><div class=\"sender-name\">骑小鳄鱼的loopy</div><div class=\"message-content\"><div class=\"message-text\"><br />年销售额具体统计是怎么统计的呢，包括哪些，可以举例说明么</div></div>","p":"577016557197709580"},
+{"i":57,"t":1774340448,"s":0,"a":"<img src=\"avatars/wxid_rwrfim93fdws22.jpg\" alt=\"灰大王\" />","b":"<div class=\"message-time\">2026-03-24 16:20:48</div><div class=\"sender-name\">灰大王</div><div class=\"message-content\"><div class=\"message-text\"><br />没异议</div></div>","p":"1726200355489303455"},
+{"i":58,"t":1774340517,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 16:21:57</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"quoted-message\"><div class=\"quoted-sender\">社区见证人-leeqi</div><div class=\"quoted-text\">年销售额具体统计是怎么统计的呢，包括哪些，可以举例说明么</div></div><div class=\"message-text\">年销售额应统计使用Toonflow开发产品相关的全部营业收入，包括但不限于：<br /><br />订阅收入：用户按月/年支付的 SaaS 服务费<br /><br />按量收入：API 调用费、按使用量计费的部分<br /><br />增值服务收入：与 SaaS 产品直接相关的增值功能、技术支持等收费<br /><br />广告/数据收入：如果产品内包含广告或数据变现，也计入<br /><br />不包含：<br /><br />与该 SaaS 产品无关的其他业务收入<br /><br />投资/理财等非经营性收入</div></div>","p":"4304505459159748256","r":"577016557197709580"},
+{"i":59,"t":1774340537,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 16:22:17</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"quoted-message\"><div class=\"quoted-sender\">社区见证人-leeqi</div><div class=\"quoted-text\">年销售额具体统计是怎么统计的呢，包括哪些，可以举例说明么</div></div><div class=\"message-text\">统计的方式目前有三种<br />申报制：使用方自行申报，HBAI或未来理事会进行抽查<br /><br />审计权：HBAI或第三方监管机构保留审计权利<br /><br />过渡期豁免：早期阶段以信任申报为主，争议由理事会裁决</div></div>","p":"771426316011288109","r":"577016557197709580"},
+{"i":60,"t":1774340565,"s":0,"a":"<img src=\"avatars/wxid_m62bozkwmyeg22.jpg\" alt=\"骑小鳄鱼的loopy\" />","b":"<div class=\"message-time\">2026-03-24 16:22:45</div><div class=\"sender-name\">骑小鳄鱼的loopy</div><div class=\"message-content\"><div class=\"message-text\"><br />无异议</div></div>","p":"4610462759508023671"},
+{"i":61,"t":1774340612,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 16:23:32</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">理事会保留使用法律手段的权力。<br />并且增加耻辱墙（笑）？</div></div>","p":"5598195201173366038"},
+{"i":62,"t":1774340643,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 16:24:03</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">不过也可以通过社区收集线索</div></div>","p":"5519901224880067721"},
+{"i":63,"t":1774340682,"s":0,"a":"<img src=\"avatars/45012757000_chatroom.jpg\" alt=\"Toonflow理事会（首次会议）\" />","b":"<div class=\"message-time\">2026-03-24 16:24:42</div><div class=\"sender-name\">Toonflow理事会（首次会议）</div><div class=\"message-content\"><div class=\"message-text\">&quot;理事会成员 ACT&quot; 撤回了一条消息0</div></div>","p":"4974041177235482113"},
+{"i":64,"t":1774340688,"s":0,"a":"<img src=\"avatars/45012757000_chatroom.jpg\" alt=\"Toonflow理事会（首次会议）\" />","b":"<div class=\"message-time\">2026-03-24 16:24:48</div><div class=\"sender-name\">Toonflow理事会（首次会议）</div><div class=\"message-content\"><div class=\"message-text\">&quot;理事会成员 ACT&quot; 撤回了一条消息0</div></div>","p":"6848142009291515578"},
+{"i":65,"t":1774340691,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 16:24:51</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"message-text\"><br />莫得问题</div></div>","p":"8318513999369926566"},
+{"i":66,"t":1774340718,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 16:25:18</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">@所有人 接下来第三个议程。<br />③ 授权收入 50% 回归社区基金（前期由HBAI进行管理，理事会满15席后由理事会决议讨论第三方进行监管）<br />HBAI 承诺全部授权收入的 50% 直接用于社区建设与贡献者分红<br />季度公示，从第一笔起执行</div></div>","p":"1217543812901044947"},
+{"i":67,"t":1774340772,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 16:26:12</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">附加：理事会成员与社区贡献者身份上区分，理事会成员不进行任何分红，但理事会成员可以以个人贡献者身份进行贡献者分红。</div></div>","p":"8394451948409936749"},
+{"i":68,"t":1774340906,"s":0,"a":"<img src=\"avatars/wxid_m62bozkwmyeg22.jpg\" alt=\"骑小鳄鱼的loopy\" />","b":"<div class=\"message-time\">2026-03-24 16:28:26</div><div class=\"sender-name\">骑小鳄鱼的loopy</div><div class=\"message-content\"><div class=\"message-text\"><br />👍</div></div>","p":"1865369357047622998"},
+{"i":69,"t":1774340941,"s":0,"a":"<img src=\"avatars/wxid_qxfmvn7q65dr21.jpg\" alt=\"晓\" />","b":"<div class=\"message-time\">2026-03-24 16:29:01</div><div class=\"sender-name\">晓</div><div class=\"message-content\"><div class=\"message-text\"><br />支持<img class=\"inline-emoji\" src=\"data:image/png;base64,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\" alt=\"[强]\" /><img class=\"inline-emoji\" src=\"data:image/png;base64,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\" alt=\"[强]\" /><img class=\"inline-emoji\" src=\"data:image/png;base64,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\" alt=\"[强]\" /></div></div>","p":"6323709435784728024"},
+{"i":70,"t":1774341040,"s":0,"a":"<img src=\"avatars/wxid_oxpx6ucuclp621.jpg\" alt=\"Alex\" />","b":"<div class=\"message-time\">2026-03-24 16:30:40</div><div class=\"sender-name\">Alex</div><div class=\"message-content\"><div class=\"message-text\"><br />支持</div></div>","p":"6935833541406816622"},
+{"i":71,"t":1774341080,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 16:31:20</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">### 决议三：授权收入 50% 回归社区基金<br /><br />**内容：** HBAI-Ltd 承诺，全部商业授权收入的 **50%** 直接用于社区建设与社区基金<br /><br />**背景：** HBAI-Ltd 拥有多条独立收入线（API 站、SkillsHub、AIGC 教育平台、SaaS 商业版），Toonflow 社区版授权非公司主要收入，具备持续履约能力。<br /><br />**社区基金用途（参考比例，由理事会投票决定）：**<br /><br />| 用途 | 参考比例 |<br />|------|---------|<br />| 贡献者年度分红 | ~40% |<br />| 社区基础设施（服务器、工具、活动） | ~30% |<br />| 社区资助项目（功能开发、文档、教程） | ~20% |<br />| 年度开发者峰会 | ~10% |<br /><br />**透明机制：**<br />- 每季度公布授权收入总额 + 基金划拨金额<br />- 每半年公示基金使用明细<br />- 社区理事会对基金用途优先级进行投票<br /><br />---</div></div>","p":"5393668957840860339"},
+{"i":72,"t":1774341119,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 16:31:59</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">[文件]Toonflow社区治理章程（意见征集）.pdf</div></div>","p":"8188641182236831524"},
+{"i":73,"t":1774341119,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 16:31:59</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">[文件]Toonflow 社区宣言（意见征集）.pdf</div></div>","p":"7662633953851778492"},
+{"i":74,"t":1774341149,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 16:32:29</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><img class=\"message-media image previewable\" src=\"../images/74_062bea7327ad9d9af2c1d173e90d0e7c.png\" data-full=\"../images/74_062bea7327ad9d9af2c1d173e90d0e7c.png\" alt=\"图片消息\" /></div>","p":"2574229778764087342"},
+{"i":75,"t":1774341318,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 16:35:18</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">@所有人 社区宣言中有阐明为什么是百分之50</div></div>","p":"4067630438805997877"},
+{"i":76,"t":1774341324,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 16:35:24</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">[图片]</div></div>","p":"5820593641340530639"},
+{"i":77,"t":1774341836,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 16:43:56</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"quoted-message\"><div class=\"quoted-sender\">理事会成员 Jason</div><div class=\"quoted-text\">### 决议三：授权收入 50% 回归社区基金<br /><br />**内容：** HBAI-Ltd 承诺，全部商业授权收入的 **50%** 直接用于社区建设与社区基金<br /><br />**背景：** HBAI-Ltd 拥有多条独立收入线（API 站、SkillsHub、AIGC 教育平台、SaaS 商业版），Toonflow 社区版授权非公司主要收入，具备持续履约能力。<br /><br />**社区基金用途（参考比例，由理事会投票决定）：**<br /><br />| 用途 | 参考比例 |<br />|------|---------|<br />| 贡献者年度分红 | ~40% |<br />| 社区基础设施（服务器、工具、活动） | ~30% |<br />| 社区资助项目（功能开发、文档、教程） | ~20% |<br />| 年度开发者峰会 | ~10% |<br /><br />**透明机制：**<br />- 每季度公布授权收入总额 + 基金划拨金额<br />- 每半年公示基金使用明细<br />- 社区理事会对基金用途优先级进行投票<br /><br />---</div></div><div class=\"message-text\">比值是没问题的</div></div>","p":"8007919021064276304","r":"5393668957840860339"},
+{"i":78,"t":1774341884,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 16:44:44</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">目前的分配只是提议参考，到时候具体的由理事会决议</div></div>","p":"5123960674126628105"},
+{"i":79,"t":1774341904,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 16:45:04</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">另外第一次会议用微信是因为方便，后面可能会用discord，会有国外的社区成员参与。</div></div>","p":"6822887596292911605"},
+{"i":80,"t":1774342039,"s":0,"a":"<img src=\"avatars/wxid_eryyyr0bvajr22.jpg\" alt=\"ㅤㅤㅤㅤ芝士\" />","b":"<div class=\"message-time\">2026-03-24 16:47:19</div><div class=\"sender-name\">ㅤㅤㅤㅤ芝士</div><div class=\"message-content\"><div class=\"message-text\"><br />看起来是没啥问题</div></div>","p":"8101379328435993766"},
+{"i":81,"t":1774342343,"s":0,"a":"<img src=\"avatars/wxid_rwrfim93fdws22.jpg\" alt=\"灰大王\" />","b":"<div class=\"message-time\">2026-03-24 16:52:23</div><div class=\"sender-name\">灰大王</div><div class=\"message-content\"><div class=\"message-text\"><br />可以的</div></div>","p":"3800338286310805456"},
+{"i":82,"t":1774343385,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 17:09:45</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">@所有人 <br />第四项议题<br />社区理事会架构<br />席位类型\t数量\t产生方式<br />社区贡献者席\t11 席\t贡献积分选举产生，任期 1 年，连任不超过 2 届<br />HBAI 任命席\t4 席\tHBAI-Ltd 内部任命，保留最终否决权<br />理事会职责： 社区基金用途投票、分红方案提案、路线图知情、新功能内测优先权<br />重要原则：理事会席位不附带分红资格。 治理权与经济权完全分离。理事会成员若有个人贡献积分，以普通开发者身份参与分红，席位不加权。</div></div>","p":"7728457912757401624"},
+{"i":83,"t":1774343400,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 17:10:00</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><img class=\"message-media image previewable\" src=\"../images/83_431e318d1b45204371c484933a0659af.png\" data-full=\"../images/83_431e318d1b45204371c484933a0659af.png\" alt=\"图片消息\" /></div>","p":"6891649073907987709"},
+{"i":84,"t":1774343461,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 17:11:01</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"message-text\"><br />@社区见证人-leeqi @理事会成员 小帅 @社区见证人-黄祥飞 @社区见证人-Semon @社区见证者-小白 @社区见证人-朱晓峰 </div></div>","p":"534214938499096742"},
+{"i":85,"t":1774343475,"s":0,"a":"<img src=\"avatars/wxid_m62bozkwmyeg22.jpg\" alt=\"骑小鳄鱼的loopy\" />","b":"<div class=\"message-time\">2026-03-24 17:11:15</div><div class=\"sender-name\">骑小鳄鱼的loopy</div><div class=\"message-content\"><div class=\"message-text\"><br />无异议</div></div>","p":"7130070374935159782"},
+{"i":86,"t":1774343488,"s":0,"a":"<img src=\"avatars/wxid_2efcgvmnlafn22.jpg\" alt=\"Tech space\" />","b":"<div class=\"message-time\">2026-03-24 17:11:28</div><div class=\"sender-name\">Tech space</div><div class=\"message-content\"><div class=\"message-text\"><br />无异议</div></div>","p":"2988629110095744196"},
+{"i":87,"t":1774343517,"s":0,"a":"<img src=\"avatars/wxid_oxpx6ucuclp621.jpg\" alt=\"Alex\" />","b":"<div class=\"message-time\">2026-03-24 17:11:57</div><div class=\"sender-name\">Alex</div><div class=\"message-content\"><div class=\"message-text\"><br />无异议</div></div>","p":"6718045921756599551"},
+{"i":88,"t":1774343529,"s":0,"a":"<img src=\"avatars/wxid_9jr6xe30ke9429.jpg\" alt=\"全屋家电、智能电器-刘生\" />","b":"<div class=\"message-time\">2026-03-24 17:12:09</div><div class=\"sender-name\">全屋家电、智能电器-刘生</div><div class=\"message-content\"><div class=\"message-text\"><br />无异议</div></div>","p":"955190744133188994"},
+{"i":89,"t":1774343844,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 17:17:24</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">@理事会成员 芝士  @理事会成员 小帅</div></div>","p":"8930978438561065467"},
+{"i":90,"t":1774343893,"s":0,"a":"<img src=\"avatars/wxid_eryyyr0bvajr22.jpg\" alt=\"ㅤㅤㅤㅤ芝士\" />","b":"<div class=\"message-time\">2026-03-24 17:18:13</div><div class=\"sender-name\">ㅤㅤㅤㅤ芝士</div><div class=\"message-content\"><div class=\"message-text\"><br />没问题</div></div>","p":"1785021965271468795"},
+{"i":91,"t":1774343897,"s":0,"a":"<img src=\"avatars/wxid_rwrfim93fdws22.jpg\" alt=\"灰大王\" />","b":"<div class=\"message-time\">2026-03-24 17:18:17</div><div class=\"sender-name\">灰大王</div><div class=\"message-content\"><div class=\"message-text\"><br />无异议</div></div>","p":"7332675830398848192"},
+{"i":92,"t":1774344025,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 17:20:25</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">@所有人 贡献值积分体系<br />第五项议题<br />关于贡献积分体系</div></div>","p":"2041524660184904929"},
+{"i":93,"t":1774344025,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 17:20:25</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">这是我的想法，核心是构建贡献值评判标准</div></div>","p":"1853347330576015130"},
+{"i":94,"t":1774344025,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 17:20:25</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><img class=\"message-media image previewable\" src=\"../images/94_1c5d30f4363e5470264c8af772c0bd25.png\" data-full=\"../images/94_1c5d30f4363e5470264c8af772c0bd25.png\" alt=\"图片消息\" /></div>","p":"6476529271640876460"},
+{"i":95,"t":1774344096,"s":0,"a":"<img src=\"avatars/wxid_m62bozkwmyeg22.jpg\" alt=\"骑小鳄鱼的loopy\" />","b":"<div class=\"message-time\">2026-03-24 17:21:36</div><div class=\"sender-name\">骑小鳄鱼的loopy</div><div class=\"message-content\"><div class=\"message-text\"><br />👍</div></div>","p":"1424264987528739811"},
+{"i":96,"t":1774344139,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 17:22:19</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"message-text\"><br />贡献值应该放榜好一点</div></div>","p":"2563393820425707855"},
+{"i":97,"t":1774344157,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 17:22:37</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"message-text\"><br />我不同意</div></div>","p":"4939493769241539451"},
+{"i":98,"t":1774344173,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 17:22:53</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"message-text\"><br />因为这个情况单按照PR来决定贡献</div></div>","p":"5077492637245886981"},
+{"i":99,"t":1774344202,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 17:23:22</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"message-text\"><br />那有人一直回复Issus或者提交很多低量PR也能混到很多积分</div></div>","p":"5618643653336091074"},
+{"i":100,"t":1774344208,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 17:23:28</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"message-text\"><br />@社区见证人-朱晓峰 @社区见证人-leeqi </div></div>","p":"1245772828621131067"},
+{"i":101,"t":1774344219,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 17:23:39</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"message-text\"><br />@社区见证人-黄祥飞 </div></div>","p":"7245077118654351100"},
+{"i":102,"t":1774344221,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 17:23:41</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"message-text\"><br />你们咋看</div></div>","p":"8106911817295509222"},
+{"i":103,"t":1774344266,"s":0,"a":"<img src=\"avatars/wxid_m62bozkwmyeg22.jpg\" alt=\"骑小鳄鱼的loopy\" />","b":"<div class=\"message-time\">2026-03-24 17:24:26</div><div class=\"sender-name\">骑小鳄鱼的loopy</div><div class=\"message-content\"><div class=\"message-text\"><br />加一些评判标准</div></div>","p":"3149517985722085466"},
+{"i":104,"t":1774344271,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 17:24:31</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"message-text\"><br />我提议是放榜制度好一点</div></div>","p":"3858227564587143350"},
+{"i":105,"t":1774344307,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 17:25:07</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"quoted-message\"><div class=\"quoted-sender\">社区见证人-leeqi</div><div class=\"quoted-text\">加一些评判标准</div></div><div class=\"message-text\">还是有问题，这个我不是评判标准的问题，而是大方向的问题</div></div>","p":"1903618932049865945","r":"3149517985722085466"},
+{"i":106,"t":1774344331,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 17:25:31</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"message-text\"><br />他如果加一堆非本阶段目标的功能那你PR合并与否</div></div>","p":"833821902438708740"},
+{"i":107,"t":1774344344,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 17:25:44</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"message-text\"><br />这一块应该需要详细再议</div></div>","p":"7183387599892398119"},
+{"i":108,"t":1774344387,"s":0,"a":"<img src=\"avatars/wxid_m62bozkwmyeg22.jpg\" alt=\"骑小鳄鱼的loopy\" />","b":"<div class=\"message-time\">2026-03-24 17:26:27</div><div class=\"sender-name\">骑小鳄鱼的loopy</div><div class=\"message-content\"><div class=\"message-text\"><br />我指的是对于合并pr这些 加一些评判标准，这个评判标准可以详细制定把 跟考试一样制定？</div></div>","p":"1313203425124520594"},
+{"i":109,"t":1774344387,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 17:26:27</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"message-text\"><br />@理事会成员 Jason 选一个时间开个腾讯会议详细聊聊？</div></div>","p":"2343065852450259616"},
+{"i":110,"t":1774344397,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 17:26:37</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"quoted-message\"><div class=\"quoted-sender\">社区见证人-leeqi</div><div class=\"quoted-text\">我指的是对于合并pr这些 加一些评判标准，这个评判标准可以详细制定把 跟考试一样制定？</div></div><div class=\"message-text\">评判标准没法限制他提交的方向呀</div></div>","p":"1724514808119569314","r":"1313203425124520594"},
+{"i":111,"t":1774344404,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 17:26:44</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"message-text\"><br />比如现阶段的目标是要走向国际化 我就得需要本地多语言的支持</div></div>","p":"8067055173655207850"},
+{"i":112,"t":1774344411,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 17:26:51</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"message-text\"><br />但他提交的pr都是其他的边缘功能 或者说他加了一堆他自己的需求功能</div></div>","p":"816096757775199661"},
+{"i":113,"t":1774344421,"s":0,"a":"<img src=\"avatars/wxid_m62bozkwmyeg22.jpg\" alt=\"骑小鳄鱼的loopy\" />","b":"<div class=\"message-time\">2026-03-24 17:27:01</div><div class=\"sender-name\">骑小鳄鱼的loopy</div><div class=\"message-content\"><div class=\"message-text\"><br />那就对应权重加分了哇</div></div>","p":"8575451847135335061"},
+{"i":114,"t":1774344453,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 17:27:33</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"message-text\"><br />本质上还是加权，核心问题是，PR不是阶段目标</div></div>","p":"278886436161968218"},
+{"i":115,"t":1774344454,"s":0,"a":"<img src=\"avatars/wxid_m62bozkwmyeg22.jpg\" alt=\"骑小鳄鱼的loopy\" />","b":"<div class=\"message-time\">2026-03-24 17:27:34</div><div class=\"sender-name\">骑小鳄鱼的loopy</div><div class=\"message-content\"><div class=\"message-text\"><br />看权重情况给积分 不过就是需要审核。</div></div>","p":"1169599157616770878"},
+{"i":116,"t":1774344466,"s":0,"a":"<img src=\"avatars/45012757000_chatroom.jpg\" alt=\"Toonflow理事会（首次会议）\" />","b":"<div class=\"message-time\">2026-03-24 17:27:46</div><div class=\"sender-name\">Toonflow理事会（首次会议）</div><div class=\"message-content\"><div class=\"message-text\">&quot;理事会成员 ACT&quot; 撤回了一条消息0</div></div>","p":"4600594218631061384"},
+{"i":117,"t":1774344479,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 17:27:59</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"message-text\"><br />可能会与阶段大方向走偏</div></div>","p":"1594279592562793370"},
+{"i":118,"t":1774344514,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 17:28:34</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">有争议部分可以找大家都有时间的时候开腾讯会议具体沟通 @理事会成员 ACT 可以多邀请一些开发者共同讨论。<br />另外理事会只对提议进行表决，不制定方向。</div></div>","p":"1486478235421655965"},
+{"i":119,"t":1774344532,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 17:28:52</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">@所有人</div></div>","p":"1842589266579595990"},
+{"i":120,"t":1774344562,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 17:29:22</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"message-text\"><br />目前这个积分的制度我觉得不太合理</div></div>","p":"1842640976765691862"},
+{"i":121,"t":1774344568,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 17:29:28</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"message-text\"><br />可以再议</div></div>","p":"1329098479576183927"},
+{"i":122,"t":1774344577,"s":0,"a":"<img src=\"avatars/wxid_m62bozkwmyeg22.jpg\" alt=\"骑小鳄鱼的loopy\" />","b":"<div class=\"message-time\">2026-03-24 17:29:37</div><div class=\"sender-name\">骑小鳄鱼的loopy</div><div class=\"message-content\"><div class=\"message-text\"><br />是会有点，所以每次把下一个版本计划发出来？  那如果他们想加一些功能但是被这样限制了可能就不知道怎么贡献了，也可能他们想写功能的你们恰好写了按照大方向来说</div></div>","p":"7874649856303467596"},
+{"i":123,"t":1774344594,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 17:29:54</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">ok，具体细则可以再讨论，对于贡献值体系建立是否同意。</div></div>","p":"8641025244417888226"},
+{"i":124,"t":1774344601,"s":0,"a":"<img src=\"avatars/wxid_m62bozkwmyeg22.jpg\" alt=\"骑小鳄鱼的loopy\" />","b":"<div class=\"message-time\">2026-03-24 17:30:01</div><div class=\"sender-name\">骑小鳄鱼的loopy</div><div class=\"message-content\"><img class=\"message-media emoji previewable\" src=\"../emojis/b30c80dd4a03352f657f32401f8aae50.gif\" data-full=\"../emojis/b30c80dd4a03352f657f32401f8aae50.gif\" alt=\"动画表情\" /><div class=\"message-text\">[表情包]</div></div>","p":"716513250802524802"},
+{"i":125,"t":1774344624,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 17:30:24</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">我不是开发者，所以我提交的方案可能会有出入，我的想法是构建贡献值体系，这样更透明一些。</div></div>","p":"1803848046226668793"},
+{"i":126,"t":1774344654,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 17:30:54</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"quoted-message\"><div class=\"quoted-sender\">理事会成员 Jason</div><div class=\"quoted-text\">ok，具体细则可以再讨论，对于贡献值体系建立是否同意。</div></div><div class=\"message-text\">可以</div></div>","p":"6201896942580462368","r":"8641025244417888226"},
+{"i":127,"t":1774344670,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 17:31:10</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">@理事会成员 芝士  @理事会成员 小帅  @社区见证人-黄祥飞  @社区见证人-朱晓峰  @社区见证人-Semon  @社区见证者-小白</div></div>","p":"7525519804519145377"},
+{"i":128,"t":1774344672,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 17:31:12</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"message-text\"><br />那定个时间？</div></div>","p":"3997489505506367423"},
+{"i":129,"t":1774344688,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 17:31:28</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">没问题，可以约时间，不过这个讨论可以扩大</div></div>","p":"8903036770646597708"},
+{"i":130,"t":1774344708,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 17:31:48</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">甚至可以108开放之后再讨论</div></div>","p":"537806866664055687"},
+{"i":131,"t":1774344829,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 17:33:49</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">@所有人 不耽误大家时间，最后两个决议一起<br />3.3 社区见证人制度<br />从开发者社区招募 5-8 名社区见证人<br />职责：旁听理事会会议全程，可提交书面意见，无投票权<br />作用：增加治理透明度，代表社区声音在场<br />3.4 过渡安排<br />积分体系上线前，第一届贡献者席位采用创始委任方式：<br />HBAI-Ltd 提名候选人<br />积分体系上线后 3 个月内启动正式选举，创始席位全部重选<br />有时间可以进行问询或提议。</div></div>","p":"8414550726723756073"},
+{"i":132,"t":1774344897,"s":0,"a":"<img src=\"avatars/wxid_eryyyr0bvajr22.jpg\" alt=\"ㅤㅤㅤㅤ芝士\" />","b":"<div class=\"message-time\">2026-03-24 17:34:57</div><div class=\"sender-name\">ㅤㅤㅤㅤ芝士</div><div class=\"message-content\"><div class=\"message-text\"><br />没问题</div></div>","p":"691194037538351376"},
+{"i":133,"t":1774344914,"s":0,"a":"<img src=\"avatars/wxid_oxpx6ucuclp621.jpg\" alt=\"Alex\" />","b":"<div class=\"message-time\">2026-03-24 17:35:14</div><div class=\"sender-name\">Alex</div><div class=\"message-content\"><div class=\"message-text\"><br />没问题</div></div>","p":"8757614712335156523"},
+{"i":134,"t":1774344923,"s":0,"a":"<img src=\"avatars/wxid_m62bozkwmyeg22.jpg\" alt=\"骑小鳄鱼的loopy\" />","b":"<div class=\"message-time\">2026-03-24 17:35:23</div><div class=\"sender-name\">骑小鳄鱼的loopy</div><div class=\"message-content\"><div class=\"message-text\"><br />没问题</div></div>","p":"4909664971583997882"},
+{"i":135,"t":1774344960,"s":0,"a":"<img src=\"avatars/wxid_9jr6xe30ke9429.jpg\" alt=\"全屋家电、智能电器-刘生\" />","b":"<div class=\"message-time\">2026-03-24 17:36:00</div><div class=\"sender-name\">全屋家电、智能电器-刘生</div><div class=\"message-content\"><div class=\"message-text\"><br />没问题<img class=\"inline-emoji\" src=\"data:image/png;base64,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\" alt=\"[强]\" /></div></div>","p":"3457969468575882953"},
+{"i":136,"t":1774345051,"s":0,"a":"<img src=\"avatars/wxid_rwrfim93fdws22.jpg\" alt=\"灰大王\" />","b":"<div class=\"message-time\">2026-03-24 17:37:31</div><div class=\"sender-name\">灰大王</div><div class=\"message-content\"><div class=\"message-text\"><br />没问题</div></div>","p":"6826807719761006601"},
+{"i":137,"t":1774345344,"s":0,"a":"<img src=\"avatars/wxid_2efcgvmnlafn22.jpg\" alt=\"Tech space\" />","b":"<div class=\"message-time\">2026-03-24 17:42:24</div><div class=\"sender-name\">Tech space</div><div class=\"message-content\"><div class=\"message-text\"><br />没问题</div></div>","p":"3649214121725760099"},
+{"i":138,"t":1774345944,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 17:52:24</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">@理事会成员 ACT 针对贡献值的议题我们可以等到新版本发布之后，再进行沟通。可以多有一些github开发者共同参与沟通。</div></div>","p":"7728188173893420746"},
+{"i":139,"t":1774345983,"s":0,"a":"<img src=\"avatars/wxid_9nkior00b7jk12.jpg\" alt=\"ACT\" />","b":"<div class=\"message-time\">2026-03-24 17:53:03</div><div class=\"sender-name\">ACT</div><div class=\"message-content\"><div class=\"message-text\"><br />ok</div></div>","p":"2186330671103730601"},
+{"i":140,"t":1774346106,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 17:55:06</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">那第一场会议结束，后面我会进行记录存档，放到github里</div></div>","p":"4228831362738853404"},
+{"i":141,"t":1774367036,"s":1,"a":"<img src=\"avatars/wxid_1b5ygjninewb12.jpg\" alt=\"jason\" />","b":"<div class=\"message-time\">2026-03-24 23:43:56</div><div class=\"sender-name\">jason</div><div class=\"message-content\"><div class=\"message-text\">@所有人 不好意思，忘记补充最重要的一点了，toonflow社区版商业授权权限在理事会，由理事会出具授权认证，hbai可以暂时承担法人主体，未来理事会需要可以进行变更。</div></div>","p":"3645930869477374417"}
+];
+    </script>
+
+    <script>
+       
+      class ChunkedRenderer {
+        constructor(container, data, renderItem) {
+          this.container = container;
+          this.data = data;
+          this.renderItem = renderItem;
+          this.batchSize = 100;
+          this.rendered = 0;
+          this.loading = false;
+
+          this.list = document.createElement('div');
+          this.list.className = 'message-list';
+          this.container.appendChild(this.list);
+
+          this.sentinel = document.createElement('div');
+          this.sentinel.className = 'load-sentinel';
+          this.container.appendChild(this.sentinel);
+
+          this.renderBatch();
+
+          this.observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && !this.loading) {
+              this.renderBatch();
+            }
+          }, { root: this.container, rootMargin: '600px' });
+          this.observer.observe(this.sentinel);
+        }
+
+        renderBatch() {
+          if (this.rendered >= this.data.length) return;
+          this.loading = true;
+          const end = Math.min(this.rendered + this.batchSize, this.data.length);
+          const fragment = document.createDocumentFragment();
+          for (let i = this.rendered; i < end; i++) {
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = this.renderItem(this.data[i], i);
+            if (wrapper.firstElementChild) fragment.appendChild(wrapper.firstElementChild);
+          }
+          this.list.appendChild(fragment);
+          this.rendered = end;
+          this.loading = false;
+        }
+
+        setData(newData) {
+          this.data = newData;
+          this.rendered = 0;
+          this.list.innerHTML = '';
+          this.container.scrollTop = 0;
+          if (this.data.length === 0) {
+            this.list.innerHTML = '<div class="empty">暂无消息</div>';
+            return;
+          }
+          this.renderBatch();
+        }
+
+        scrollToTime(timestamp) {
+          const idx = this.data.findIndex(item => item.t >= timestamp);
+          if (idx === -1) return;
+          // Ensure all messages up to target are rendered
+          while (this.rendered <= idx) {
+            this.renderBatch();
+          }
+          const el = this.list.children[idx];
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('highlight');
+            setTimeout(() => el.classList.remove('highlight'), 2500);
+          }
+        }
+
+        scrollToIndex(index) {
+          while (this.rendered <= index) {
+            this.renderBatch();
+          }
+          const el = this.list.children[index];
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }
+      }
+    
+
+      const searchInput = document.getElementById('searchInput')
+      const timeInput = document.getElementById('timeInput')
+      const jumpBtn = document.getElementById('jumpBtn')
+      const resultCount = document.getElementById('resultCount')
+      const imagePreview = document.getElementById('imagePreview')
+      const imagePreviewTarget = document.getElementById('imagePreviewTarget')
+      const container = document.getElementById('scrollContainer')
+      let imageZoom = 1
+
+      // Initial Data
+      let allData = window.WEFLOW_DATA || [];
+      let currentList = allData;
+
+      // Render Item Function
+      const renderItem = (item, index) => {
+         const isSenderMe = item.s === 1;
+         const platformIdAttr = item.p ? ` data-platform-message-id="${item.p}"` : '';
+         const replyToAttr = item.r ? ` data-reply-to-message-id="${item.r}"` : '';
+         return `
+          <div class="message ${isSenderMe ? 'sent' : 'received'}" data-index="${item.i}"${platformIdAttr}${replyToAttr}>
+            <div class="message-row">
+              <div class="avatar">${item.a}</div>
+              <div class="bubble">
+                ${item.b}
+              </div>
+            </div>
+          </div>
+         `;
+      };
+      
+      const renderer = new ChunkedRenderer(container, currentList, renderItem);
+
+      const updateCount = () => {
+        resultCount.textContent = `共 ${currentList.length} 条`
+      }
+
+      // Search Logic
+      let searchTimeout;
+      searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          const keyword = searchInput.value.trim().toLowerCase();
+          if (!keyword) {
+            currentList = allData;
+          } else {
+            currentList = allData.filter(item => {
+               return item.b.toLowerCase().includes(keyword); 
+            });
+          }
+          renderer.setData(currentList);
+          updateCount();
+        }, 300);
+      })
+
+      // Jump Logic
+      jumpBtn.addEventListener('click', () => {
+        const value = timeInput.value
+        if (!value) return
+        const target = Math.floor(new Date(value).getTime() / 1000)
+        renderer.scrollToTime(target);
+      })
+
+      // Image Preview (Delegation)
+      container.addEventListener('click', (e) => {
+        const target = e.target;
+        if (target.classList.contains('previewable')) {
+           const full = target.getAttribute('data-full')
+           if (!full) return
+           imagePreviewTarget.src = full
+           imageZoom = 1
+           imagePreviewTarget.style.transform = 'scale(1)'
+           imagePreview.classList.add('active')
+        }
+      });
+
+      imagePreviewTarget.addEventListener('click', (event) => {
+        event.stopPropagation()
+      })
+
+      imagePreviewTarget.addEventListener('dblclick', (event) => {
+        event.stopPropagation()
+        imageZoom = 1
+        imagePreviewTarget.style.transform = 'scale(1)'
+      })
+
+      imagePreviewTarget.addEventListener('wheel', (event) => {
+        event.preventDefault()
+        const delta = event.deltaY > 0 ? -0.1 : 0.1
+        imageZoom = Math.min(3, Math.max(0.5, imageZoom + delta))
+        imagePreviewTarget.style.transform = `scale(${imageZoom})`
+      }, { passive: false })
+
+      imagePreview.addEventListener('click', () => {
+        imagePreview.classList.remove('active')
+        imagePreviewTarget.src = ''
+        imageZoom = 1
+        imagePreviewTarget.style.transform = 'scale(1)'
+      })
+
+      updateCount()
+    </script>
+  </body>
+</html>

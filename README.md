@@ -14,19 +14,19 @@ RFCs, charter, and meeting minutes—all fully transparent and open to the publi
 | 你想知道 / Looking for / 知りたい | 看这里 / Check / 参照 |
 |---------|--------|
 | Toonflow 社区的原则是什么？ | [社区宣言](./MAINFESTO.md) |
-| 最近发生了什么决定？ | [会议记录](./council-meeting-01.md) |
+| 最近发生了什么决定？ | [会议记录](./Meeting_Minutes) |
 | 理事会怎么运作？ | [治理章程](./GOVERNANCE.md) |
 | 正在讨论什么？ | [RFC 提案](./RFC/RFC-001-license-change.md) |
 |~|
 | What are Toonflow's core principles? | [Community Manifesto](./MAINFESTO_EN.md) |
+| What recent decisions have been made? | [Meeting Minutes](./Meeting_Minutes) |
 | How does the Council operate? | [Governance Charter](./GOVERNANCE_EN.md) |
 | What is currently under discussion? | [RFC Proposals](./RFC/RFC-001-license-change.md) |
-| What recent decisions have been made? | [Meeting Minutes](./council-meeting-01_EN.md) |
 |~|
 | Toonflow コミュニティの原則とは？ | [コミュニティ宣言](./MAINFESTO_JP.md) |
+| 最近の決定事項は？ | [議事録](./Meeting_Minutes) |
 | 理事会の運営方法は？ | [ガバナンス憲章](./GOVERNANCE_JP.md) |
 | 現在の議論内容は？ | [RFC 提案](./RFC/RFC-001-license-change.md) |
-| 最近の決定事項は？ | [議事録](./council-meeting-01_JP.md) |
 
 ---
 
